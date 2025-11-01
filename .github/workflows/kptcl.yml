@@ -23,20 +23,13 @@ jobs:
           pip install selenium
 
       
-      - name: Install Chrome and ChromeDriver
+      -  name: Install Chrome & ChromeDriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget unzip
-          # Install latest Google Chrome
-          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
-          # Install matching ChromeDriver
-          CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+' | head -1)
-          DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE")
-          wget -q "https://storage.googleapis.com/chrome-for-testing-public/${DRIVER_VERSION}/linux64/chromedriver-linux64.zip"
-          unzip chromedriver-linux64.zip
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/chromedriver
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+          which chromedriver
+          chromedriver --version
+          chromium-browser --version
 
       - name: Run Selenium Script
         run: |
