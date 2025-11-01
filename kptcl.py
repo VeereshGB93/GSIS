@@ -4,6 +4,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 import time
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 def runkptclautomation():
     chrome_options = webdriver.ChromeOptions()
@@ -15,8 +17,11 @@ def runkptclautomation():
     chrome_options.add_argument("--disable-software-rasterizer")
     chrome_options.add_argument("--remote-debugging-port=9222")
 
+    service = Service("/usr/bin/chromedriver")
+
     chrome_options.binary_location = "/usr/bin/google-chrome"
-    driver = webdriver.Chrome(options=chrome_options)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    #driver = webdriver.Chrome(options=chrome_options)
 
     wait = WebDriverWait(driver, 20)
     try:
@@ -86,4 +91,5 @@ def runkptclautomation():
 
 if __name__ == '__main__':
     runkptclautomation()
+
 
