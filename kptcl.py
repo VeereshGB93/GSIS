@@ -6,12 +6,13 @@ from datetime import datetime
 import os, time
 
 def run_kptcl_automation():
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.binary_location = "/usr/bin/google-chrome"  # ✅ add this line
-    chrome_options.add_argument("--headless")
+    chrome_options = Options()
+    chrome_options.add_argument("--headless=new")  # Use new headless mode (Chrome 109+)
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.add_argument("--remote-debugging-port=9222")
 
     driver = webdriver.Chrome(options=chrome_options)
     wait = WebDriverWait(driver, 20)
@@ -72,4 +73,5 @@ def run_kptcl_automation():
 
 if __name__ == "__main__":
     run_kptcl_automation()
+
 
