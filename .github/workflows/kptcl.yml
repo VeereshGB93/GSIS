@@ -18,14 +18,14 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Chrome + ChromeDriver
+            - name: Install Chrome + ChromeDriver
         shell: bash
         run: |
           set -e
           sudo apt-get update -y
           sudo apt-get install -y wget unzip curl jq
 
-          # ✅ Ensure Chrome is installed
+          echo "✅ Checking Google Chrome..."
           if ! command -v google-chrome >/dev/null; then
             echo "Installing Google Chrome..."
             wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -37,24 +37,25 @@ jobs:
           CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+' | head -1)
           echo "Detected Chrome major version: $CHROME_VERSION"
 
-          # ✅ Try to find the exact ChromeDriver for this Chrome version
-          DRIVER_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json \
-            | jq -r --arg ver "$CHROME_VERSION" '
-                .versions[]
-                | select(.version | startswith($ver))
-                | .downloads.chromedriver[]?
-                | select(.platform=="linux64")
-                | .url
-              ' | head -n 1)
+          # ✅ Find matching ChromeDriver version safely
+          DRIVER_URLS=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json | jq -r --arg ver "$CHROME_VERSION" '
+            .versions[]
+            | select(.version | startswith($ver))
+            | .downloads.chromedriver[]?
+            | select(.platform=="linux64")
+            | .url
+          ')
 
-          # ✅ Fallback if no matching driver found
+          DRIVER_URL=$(echo "$DRIVER_URLS" | head -n 1)
+
+          # ✅ Fallback to stable if no match
           if [ -z "$DRIVER_URL" ] || [ "$DRIVER_URL" == "null" ]; then
-            echo "⚠️ No exact match found, using latest stable ChromeDriver..."
+            echo "⚠️ No matching ChromeDriver found, using stable instead..."
             DRIVER_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json \
               | jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform=="linux64") | .url')
           fi
 
-          echo "Downloading ChromeDriver from: $DRIVER_URL"
+          echo "⬇️ Downloading ChromeDriver from: $DRIVER_URL"
           wget -q "$DRIVER_URL" -O /tmp/chromedriver.zip
           unzip -o /tmp/chromedriver.zip -d /tmp/
           sudo mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
@@ -64,6 +65,7 @@ jobs:
           chromedriver --version
 
           pip install selenium
+
 
 
 
