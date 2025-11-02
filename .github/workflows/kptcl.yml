@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.11"
 
-            - name: Install Chrome + ChromeDriver
+      - name: Install Chrome + ChromeDriver
         shell: bash
         run: |
           set -e
