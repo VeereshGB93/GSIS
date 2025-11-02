@@ -24,7 +24,7 @@ jobs:
           set -e
           sudo apt-get update -y
           sudo apt-get install -y wget unzip curl
-          
+
           if ! command -v google-chrome >/dev/null; then
             echo "Installing Google Chrome..."
             wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -34,29 +34,32 @@ jobs:
           echo "✅ Google Chrome version:"
           google-chrome --version
 
-          # Attempt to match ChromeDriver version
           CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+' | head -1)
           echo "Detected Chrome major version: $CHROME_VERSION"
 
+          # --- Try to find an exact match for the installed Chrome version ---
           DRIVER_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json \
-            | grep -A 5 "\"version\": \"$CHROME_VERSION" | grep "chromedriver-linux64" \
+            | grep -A 5 "\"$CHROME_VERSION" | grep "chromedriver-linux64" \
             | head -1 | sed -E 's/.*"url": "(.*)".*/\1/') || true
 
+          # --- Fallback: get the latest available ChromeDriver ---
           if [ -z "$DRIVER_URL" ]; then
-            echo "⚠️ Could not find matching ChromeDriver, using latest stable instead."
+            echo "⚠️ No exact driver found for Chrome $CHROME_VERSION. Falling back to latest stable..."
             DRIVER_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json \
               | grep -A 3 "Stable" | grep "chromedriver-linux64" | sed -E 's/.*"url": "(.*)".*/\1/')
           fi
 
           echo "Downloading ChromeDriver from: $DRIVER_URL"
-          wget -q "$DRIVER_URL" -O chromedriver.zip || (echo "⚠️ Download failed, continuing with existing driver." && exit 0)
-          unzip -o chromedriver.zip -d /usr/local/bin/ || true
-          chmod +x /usr/local/bin/chromedriver || true
+          wget -q "$DRIVER_URL" -O /tmp/chromedriver.zip
+          unzip -o /tmp/chromedriver.zip -d /tmp/
+          sudo mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
 
-          echo "✅ ChromeDriver installed successfully."
-          chromedriver --version || echo "⚠️ ChromeDriver not found, but continuing..."
-          
+          echo "✅ ChromeDriver installed successfully:"
+          chromedriver --version || echo "⚠️ ChromeDriver not found."
+
           pip install selenium
+
 
       - name: Run Selenium automation (headless)
         env:
