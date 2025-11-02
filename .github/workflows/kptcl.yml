@@ -1,9 +1,9 @@
 name: Run KPTCL Automation
 
 on:
-  workflow_dispatch:       # run manually
+  workflow_dispatch:
   schedule:
-    - cron: "0 3 * * *"    # (optional) run daily at 3 AM UTC
+    - cron: "0 3 * * *"  # runs daily at 3 AM UTC (~8:30 AM IST)
 
 jobs:
   run-automation:
@@ -18,10 +18,19 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install Google Chrome and ChromeDriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y chromium-browser chromium-chromedriver
+          sudo apt-get install -y wget unzip
+          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb
+          CHROME_VERSION=$(google-chrome --version | cut -d ' ' -f3 | cut -d '.' -f1)
+          DRIVER_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json" \
+            | grep -A 3 "\"version\": \"$CHROME_VERSION" | grep "linux64" | head -1 \
+            | sed -E 's/.*"url": "(.*)".*/\1/')
+          wget -q "$DRIVER_VERSION" -O chromedriver.zip
+          unzip -o chromedriver.zip -d /usr/local/bin/
+          chmod +x /usr/local/bin/chromedriver
           pip install selenium
 
       - name: Run Selenium automation (headless)
