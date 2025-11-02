@@ -7,6 +7,7 @@ import os, time
 
 def run_kptcl_automation():
     chrome_options = webdriver.ChromeOptions()
+    chrome_options.binary_location = "/usr/bin/google-chrome"  # ✅ add this line
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
@@ -71,3 +72,4 @@ def run_kptcl_automation():
 
 if __name__ == "__main__":
     run_kptcl_automation()
+
