@@ -28,4 +28,4 @@ jobs:
         env:
           KPTCL_USERNAME: ${{ secrets.KPTCL_USERNAME }}
           KPTCL_PASSWORD: ${{ secrets.KPTCL_PASSWORD }}
-        run: python kptcl_automation.py
+        run: python kptcl.py
