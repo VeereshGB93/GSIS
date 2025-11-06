@@ -38,7 +38,7 @@ jobs:
           KPTCL_USERNAME: ${{ secrets.KPTCL_USERNAME }}
           KPTCL_PASSWORD: ${{ secrets.KPTCL_PASSWORD }}
         run: |
-          python kptcl_automation.py
+          python kptcl.py
 
       - name: Upload screenshot artifact (if any)
         if: always()
