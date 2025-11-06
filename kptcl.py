@@ -1,84 +1,92 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options   # ✅ This is required
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+# kptcl_requests.py
+import requests
+from bs4 import BeautifulSoup
 from datetime import datetime
-import os, time
+import os
 
+BASE_URL = "https://sis.kptcl.net/SIS"
+
+def get_viewstate(html):
+    """Extract JSF ViewState token from HTML."""
+    soup = BeautifulSoup(html, "html.parser")
+    vs = soup.find("input", {"name": "javax.faces.ViewState"})
+    return vs["value"] if vs else ""
 
 def run_kptcl_automation():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")  # Use new headless mode (Chrome 109+)
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.add_argument("--remote-debugging-port=9222")
+    session = requests.Session()
 
-    driver = webdriver.Chrome(options=chrome_options)
-    wait = WebDriverWait(driver, 20)
+    username = os.getenv("KPTCL_USERNAME")
+    password = os.getenv("KPTCL_PASSWORD")
+
+    if not username or not password:
+        print("❌ Missing environment variables KPTCL_USERNAME or KPTCL_PASSWORD.")
+        return
 
     try:
-        driver.get("https://sis.kptcl.net/SIS/pages/loginSelectionPage.sis")
+        # STEP 1: Load login page
+        print("➡️ Loading login page...")
+        r = session.get(f"{BASE_URL}/pages/loginSelectionPage.sis")
+        if r.status_code != 200:
+            print("❌ Failed to load login page.")
+            return
+        viewstate = get_viewstate(r.text)
 
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Bagalakote Zone']"))).click()
-        time.sleep(2)
+        # STEP 2: Select Zone
+        print("➡️ Selecting Bagalakote Zone...")
+        zone_payload = {
+            "form": "form",
+            "form:zone_selection_input": "Bagalakote Zone",
+            "form:zone_selection_focus": "",
+            "form:j_idt20": "form:j_idt20",  # zone select button
+            "javax.faces.ViewState": viewstate,
+        }
+        r = session.post(f"{BASE_URL}/pages/loginSelectionPage.sis", data=zone_payload)
+        viewstate = get_viewstate(r.text)
 
-        username = os.getenv("KPTCL_USERNAME")
-        password = os.getenv("KPTCL_PASSWORD")
+        # STEP 3: Login
+        print("➡️ Logging in...")
+        login_payload = {
+            "j_username": username,
+            "j_password": password,
+            "login": "Login",
+            "javax.faces.ViewState": viewstate,
+        }
+        r = session.post(f"{BASE_URL}/j_spring_security_check", data=login_payload)
+        if "logout" not in r.text.lower():
+            print("❌ Login failed — check credentials.")
+            return
+        print("✅ Logged in successfully.")
 
-        wait.until(EC.presence_of_element_located((By.ID, "j_username"))).send_keys(username)
-        wait.until(EC.presence_of_element_located((By.ID, "j_password"))).send_keys(password)
+        # STEP 4: Access main page
+        r = session.get(f"{BASE_URL}/pages/main.sis")
+        viewstate = get_viewstate(r.text)
 
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Login']"))).click()
-        time.sleep(2)
+        # STEP 5: Simulate maintenance form submission
+        today = datetime.now().strftime("%d-%m-%Y")
+        print(f"➡️ Submitting maintenance record for {today}...")
 
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Back']"))).click()
-        time.sleep(1)
+        maintenance_payload = {
+            "form": "form",
+            "form:tabview:j_idt95": "form:tabview:j_idt95",
+            "form:tabview:date_input": today,
+            "form:tabview:add_button": "Add",
+            "javax.faces.ViewState": viewstate,
+        }
 
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='OK']"))).click()
-        time.sleep(1)
+        r = session.post(f"{BASE_URL}/pages/main.sis", data=maintenance_payload)
+        if r.status_code == 200:
+            print("✅ Maintenance form submitted successfully.")
+        else:
+            print("❌ Maintenance submission failed.")
 
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//a[@href='#form:tabview:maintenance']"))).click()
-        time.sleep(2)
-
-        wait.until(EC.element_to_be_clickable((By.ID, "form:tabview:j_idt95"))).click()
-        time.sleep(2)
-
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Add']"))).click()
-        time.sleep(2)
-
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[contains(@class,'ui-icon-calendar')]"))).click()
-        time.sleep(1)
-
-        today = datetime.now().day
-        date_xpath = f"//table[contains(@class,'ui-datepicker-calendar')]//a[text()='{today}']"
-        wait.until(EC.element_to_be_clickable((By.XPATH, date_xpath))).click()
-        time.sleep(1)
-
-        wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[contains(@class,'ui-chkbox-box')])[1]"))).click()
-        time.sleep(2)
-
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Save']"))).click()
-        time.sleep(3)
-
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//a[contains(@href,'j_spring_security_logout')]"))).click()
-        print("✅ KPTCL SIS automation completed successfully.")
+        # STEP 6: Logout
+        print("➡️ Logging out...")
+        session.get(f"{BASE_URL}/j_spring_security_logout")
+        print("✅ Logged out successfully.")
+        print("🎉 KPTCL automation completed successfully (requests-based).")
 
     except Exception as e:
         print("❌ Automation error:", e)
 
-    finally:
-        time.sleep(3)
-        driver.quit()
-
 if __name__ == "__main__":
     run_kptcl_automation()
-
-
-
-
-
-
