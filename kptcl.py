@@ -96,8 +96,28 @@ def run_kptcl_automation():
 
         # Click the zone (Bagalakote Zone)
         print("➡️ Selecting 'Bagalakote Zone' ...")
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Bagalakote Zone']"))).click()
-        time.sleep(1)
+try:
+    # Try exact match first
+    zone_btn = wait.until(
+        EC.element_to_be_clickable((By.XPATH, "//span[normalize-space()='Bagalakote Zone']"))
+    )
+    zone_btn.click()
+except Exception:
+    # If not found, check by partial text or button tag
+    try:
+        zone_btn = wait.until(
+            EC.element_to_be_clickable(
+                (By.XPATH, "//*[contains(text(),'Bagalakote') or contains(text(),'Bagalkote')]")
+            )
+        )
+        zone_btn.click()
+    except Exception:
+        print("⚠️ Could not find Bagalakote Zone. Capturing HTML for debugging …")
+        with open("page_source.html", "w", encoding="utf-8") as f:
+            f.write(driver.page_source)
+        raise
+time.sleep(2)
+
 
         # Fill username and password
         print("➡️ Entering credentials ...")
@@ -189,3 +209,4 @@ def run_kptcl_automation():
 
 if __name__ == "__main__":
     run_kptcl_automation()
+
