@@ -26,18 +26,22 @@ def run_kptcl_automation():
         # STEP 1: Load login page
         print("➡️ Loading login page...")
         headers = {
-                    "User-Agent": (
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
-                                    ),
-                    "Accept-Language": "en-US,en;q=0.9",
-                    "Referer": "https://sis.kptcl.net/",
-                }
-        r = session.get(f"{BASE_URL}/pages/loginSelectionPage.sis", headers=headers)
+                "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+                    ),
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Connection": "keep-alive",
+                "Referer": "https://sis.kptcl.net/",
+                    }
+
+        r = session.get(f"{BASE_URL}/pages/loginSelectionPage.sis", headers=headers, timeout=30)
         print("Status:", r.status_code)
         print("Final URL:", r.url)
         print("Response snippet:", r.text[:300])
+
         if r.status_code != 200:
             print("❌ Failed to load login page.")
             return
@@ -102,6 +106,7 @@ def run_kptcl_automation():
 
 if __name__ == "__main__":
     run_kptcl_automation()
+
 
 
 
