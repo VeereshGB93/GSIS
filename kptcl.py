@@ -26,6 +26,9 @@ def run_kptcl_automation():
         # STEP 1: Load login page
         print("➡️ Loading login page...")
         r = session.get(f"{BASE_URL}/pages/loginSelectionPage.sis")
+        print("Status:", r.status_code)
+        print("Final URL:", r.url)
+        print("Response snippet:", r.text[:300])
         if r.status_code != 200:
             print("❌ Failed to load login page.")
             return
@@ -90,3 +93,4 @@ def run_kptcl_automation():
 
 if __name__ == "__main__":
     run_kptcl_automation()
+
