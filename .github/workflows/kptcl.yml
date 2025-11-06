@@ -1,28 +1,40 @@
 name: Run KPTCL Automation
 
 on:
-  workflow_dispatch:          # Manual trigger
+  workflow_dispatch:
   schedule:
-    - cron: "0 6 * * *"      # Every day at 6 AM UTC (≈ 11:30 AM IST)
+    - cron: "30 2 * * *"  # Runs daily at 8:00 AM IST
 
 jobs:
-  kptcl:
+  run-automation:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4
+          python -m pip install --upgrade pip
+          pip install selenium
 
-      - name: Run KPTCL automation
+      - name: Install Chrome and Chromedriver
+        run: |
+          sudo apt update
+          sudo apt install -y google-chrome-stable
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}')
+          echo "Detected Chrome version: $CHROME_VERSION"
+          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+          wget -q "https://chromedriver.storage.googleapis.com/${DRIVER_VERSION}/chromedriver_linux64.zip"
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          chromedriver --version
+
+      - name: Run KPTCL Automation
         env:
           KPTCL_USERNAME: ${{ secrets.KPTCL_USERNAME }}
           KPTCL_PASSWORD: ${{ secrets.KPTCL_PASSWORD }}
