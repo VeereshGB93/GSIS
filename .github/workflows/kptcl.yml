@@ -1,12 +1,12 @@
 name: Run KPTCL Automation
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:          # Manual trigger
   schedule:
-    - cron: "0 3 * * *"  # daily at 3 AM UTC (~8:30 AM IST)
+    - cron: "0 6 * * *"      # Every day at 6 AM UTC (≈ 11:30 AM IST)
 
 jobs:
-  run-automation:
+  kptcl:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,61 +16,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.10"
 
-      - name: Install Chrome + ChromeDriver
-        shell: bash
+      - name: Install dependencies
         run: |
-          set -e
-          sudo apt-get update -y
-          sudo apt-get install -y wget unzip curl jq
+          pip install requests beautifulsoup4
 
-          echo "✅ Checking Google Chrome..."
-          if ! command -v google-chrome >/dev/null; then
-            echo "Installing Google Chrome..."
-            wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-            sudo apt install -y ./google-chrome-stable_current_amd64.deb || true
-          fi
-
-          echo "✅ Google Chrome version:"
-          google-chrome --version
-          CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+' | head -1)
-          echo "Detected Chrome major version: $CHROME_VERSION"
-
-          # ✅ Find matching ChromeDriver version safely
-          DRIVER_URLS=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/known-good-versions-with-downloads.json | jq -r --arg ver "$CHROME_VERSION" '
-            .versions[]
-            | select(.version | startswith($ver))
-            | .downloads.chromedriver[]?
-            | select(.platform=="linux64")
-            | .url
-          ')
-
-          DRIVER_URL=$(echo "$DRIVER_URLS" | head -n 1)
-
-          # ✅ Fallback to stable if no match
-          if [ -z "$DRIVER_URL" ] || [ "$DRIVER_URL" == "null" ]; then
-            echo "⚠️ No matching ChromeDriver found, using stable instead..."
-            DRIVER_URL=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json \
-              | jq -r '.channels.Stable.downloads.chromedriver[] | select(.platform=="linux64") | .url')
-          fi
-
-          echo "⬇️ Downloading ChromeDriver from: $DRIVER_URL"
-          wget -q "$DRIVER_URL" -O /tmp/chromedriver.zip
-          unzip -o /tmp/chromedriver.zip -d /tmp/
-          sudo mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/chromedriver
-
-          echo "✅ ChromeDriver installed successfully:"
-          chromedriver --version
-
-          pip install selenium
-
-
-
-
-      - name: Run Selenium automation (headless)
+      - name: Run KPTCL automation
         env:
           KPTCL_USERNAME: ${{ secrets.KPTCL_USERNAME }}
           KPTCL_PASSWORD: ${{ secrets.KPTCL_PASSWORD }}
-        run: python kptcl.py
+        run: |
+          python kptcl_requests.py
