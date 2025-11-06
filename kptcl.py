@@ -25,7 +25,16 @@ def run_kptcl_automation():
     try:
         # STEP 1: Load login page
         print("➡️ Loading login page...")
-        r = session.get(f"{BASE_URL}/pages/loginSelectionPage.sis")
+        headers = {
+                    "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/124.0.0.0 Safari/537.36"
+                                    ),
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Referer": "https://sis.kptcl.net/",
+                }
+        r = session.get(f"{BASE_URL}/pages/loginSelectionPage.sis", headers=headers)
         print("Status:", r.status_code)
         print("Final URL:", r.url)
         print("Response snippet:", r.text[:300])
@@ -93,4 +102,5 @@ def run_kptcl_automation():
 
 if __name__ == "__main__":
     run_kptcl_automation()
+
 
