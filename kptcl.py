@@ -96,24 +96,16 @@ def run_kptcl_automation():
 
         # Click the zone (Bagalakote Zone)
         print("➡️ Selecting 'Bagalakote Zone' ...")
-                try:
-                    # Try exact match first
-                zone_btn = wait.until(
-                EC.element_to_be_clickable((By.XPATH, "//span[normalize-space()='Bagalakote Zone']"))
-                )
-        zone_btn.click()
-        except Exception:
         try:
-        # fallback partial match
-        zone_btn = wait.until(
-            EC.element_to_be_clickable((By.XPATH, "//*[contains(text(),'Bagalkote')]"))
-        )
-        zone_btn.click()
-        except Exception as e:
-        print("⚠️ Could not find Bagalakote Zone. Saving page_source.html for debugging.")
-        with open("page_source.html", "w", encoding="utf-8") as f:
-            f.write(driver.page_source)
-        raise e
+            zone_btn = wait.until(
+                EC.element_to_be_clickable((By.XPATH, "//span[normalize-space()='Bagalakote Zone']"))
+            )
+            zone_btn.click()
+        except Exception:
+            zone_btn = wait.until(
+                EC.element_to_be_clickable((By.XPATH, "//*[contains(text(),'Bagalkote')]"))
+            )
+            zone_btn.click()
         time.sleep(2)
 
 
@@ -208,5 +200,6 @@ def run_kptcl_automation():
 
 if __name__ == "__main__":
     run_kptcl_automation()
+
 
 
