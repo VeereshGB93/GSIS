@@ -27,4 +27,4 @@ jobs:
           KPTCL_USERNAME: ${{ secrets.KPTCL_USERNAME }}
           KPTCL_PASSWORD: ${{ secrets.KPTCL_PASSWORD }}
         run: |
-          python kptcl_requests.py
+          python kptcl.py
