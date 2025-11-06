@@ -6,6 +6,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime
 import os, time
+import logging
+from selenium.webdriver.remote.remote_connection import LOGGER
+LOGGER.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
+
 
 def run_kptcl_automation():
     chrome_options = Options()
@@ -75,6 +80,7 @@ def run_kptcl_automation():
 
 if __name__ == "__main__":
     run_kptcl_automation()
+
 
 
 
