@@ -7,7 +7,7 @@ import time
 
 def runkptclautomation():
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")  # Run in headless mode
+    chrome_options.add_argument("--headless=new")  # Run in headless mode
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--disable-gpu")
@@ -84,3 +84,4 @@ def runkptclautomation():
 
 if __name__ == '__main__':
     runkptclautomation()
+
