@@ -16,7 +16,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v3
       with:
-        python-version: '3.13'
+        python-version: '3.10'
 
     - name: Install Python dependencies
       run: |
@@ -24,7 +24,7 @@ jobs:
         pip install selenium undetected-chromedriver
 
     - name: Install distutils
-      run: sudo apt-get install python3.13-distutils -y
+      run: sudo apt-get install python3.10-distutils -y
         
     - name: Install ChromeDriver
       uses: nanasess/setup-chromedriver@v2
