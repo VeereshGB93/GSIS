@@ -1,102 +1,58 @@
-from selenium import webdriver
+import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from datetime import datetime
-import time
+import time, sys
 
 def runkptclautomation():
-    chrome_options = webdriver.ChromeOptions()
 
-    # Required for GitHub Actions
-    chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--remote-debugging-port=9222")
-    chrome_options.add_argument("--window-size=1920x1080")
-    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    chrome_options.add_experimental_option('useAutomationExtension', False)
-    chrome_options.add_argument("--proxy-server=http://USER:PASS@HOST:PORT")
+    print("Launching stealth browser...")
 
-    # ❌ DO NOT set binary_location in GitHub Actions
-    # chrome_options.binary_location = "/usr/bin/google-chrome"
+    options = uc.ChromeOptions()
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--disable-popup-blocking")
+    options.add_argument("--disable-infobars")
+    options.add_argument("--start-maximized")
 
-    driver = webdriver.Chrome(options=chrome_options)
-    wait = WebDriverWait(driver, 25)
+    # IMPORTANT: DO NOT USE HEADLESS
+    driver = uc.Chrome(options=options)
 
     try:
         print("Opening KPTCL SIS login page...")
-        driver.get("https://sis.kptcl.net/SISpages/loginSelectionPage.sis")
+        driver.get("https://sis.kptcl.com/")   # or your correct link
+
+        time.sleep(5)
 
         print("Page Title:", driver.title)
-        print("Page Source First 500 chars:")
-        print(driver.page_source[:500])
-    
-        # 1. Select zone
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Bagalakote Zone']"))).click()
 
-        # 2. Login
-        wait.until(EC.presence_of_element_located((By.ID, "j_username"))).send_keys("aelakamanahalli110")
-        wait.until(EC.presence_of_element_located((By.ID, "j_password"))).send_keys("110lhalli")
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Login']"))).click()
+        if "403" in driver.title.lower():
+            print("❌ 403 Forbidden — IP blocked / datacenter blocked")
+            return
 
-        # 3. Back
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Back']"))).click()
+        if "chromium" in driver.page_source or "BSD-style" in driver.page_source:
+            print("❌ Chrome Security Interstitial — SSL/HSTS/WAF block")
+            return
 
-        # 4. OK
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='OK']"))).click()
+        # WAIT FOR LOGIN FORM
+        wait = WebDriverWait(driver, 30)
+        wait.until(EC.presence_of_element_located((By.ID, "username")))
 
-        # 5. Maintenance tab
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//a[@href='#form:tabview:maintenance']"))).click()
+        print("Login page loaded successfully.")
 
-        # 6. Daily maintenance
-        wait.until(EC.element_to_be_clickable((By.ID, "form:tabview:j_idt95"))).click()
+        # Fill login
+        driver.find_element(By.ID, "username").send_keys("YOUR_USER")
+        driver.find_element(By.ID, "password").send_keys("YOUR_PASS")
+        driver.find_element(By.ID, "login").click()
 
-        # 7. Add
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Add']"))).click()
-
-        # 8. Calendar
-        wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//span[contains(@class,'ui-icon-calendar')]"))
-        ).click()
-
-        # 9. Select today's date
-        today = datetime.now().day
-        date_xpath = f"//table[contains(@class,'ui-datepicker-calendar')]//a[text()='{today}']"
-        wait.until(EC.element_to_be_clickable((By.XPATH, date_xpath))).click()
-
-        # 10. Select All checkbox
-        wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "(//div[contains(@class,'ui-chkbox-box')])[1]"))
-        ).click()
-
-        # 11. Save
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Save']"))).click()
-
-        # 12. Logout
-        wait.until(EC.element_to_be_clickable(
-            (By.XPATH, "//a[contains(@href,'j_spring_security_logout')]"))
-        ).click()
-
-        print("KPTCL SIS automation completed successfully.")
+        print("Logged in successfully.")
 
     except Exception as e:
         print("Automation error:", e)
-        print("Capturing screenshot...")
-
-        try:
-            driver.save_screenshot("error.png")
-            print("Saved screenshot as error.png")
-        except:
-            print("Failed to capture screenshot.")
+        driver.save_screenshot("error.png")
+        print("Saved screenshot as error.png")
 
     finally:
         driver.quit()
 
 if __name__ == "__main__":
     runkptclautomation()
-
-
-
