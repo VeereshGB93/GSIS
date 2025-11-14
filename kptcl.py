@@ -18,6 +18,7 @@ def runkptclautomation():
     chrome_options.add_argument("--disable-blink-features=AutomationControlled")
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
+    chrome_options.add_argument("--proxy-server=http://USER:PASS@HOST:PORT")
 
     # ❌ DO NOT set binary_location in GitHub Actions
     # chrome_options.binary_location = "/usr/bin/google-chrome"
@@ -96,5 +97,6 @@ def runkptclautomation():
 
 if __name__ == "__main__":
     runkptclautomation()
+
 
 
