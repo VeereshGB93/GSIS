@@ -15,6 +15,9 @@ def runkptclautomation():
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--remote-debugging-port=9222")
     chrome_options.add_argument("--window-size=1920x1080")
+    chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+    chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+    chrome_options.add_experimental_option('useAutomationExtension', False)
 
     # ❌ DO NOT set binary_location in GitHub Actions
     # chrome_options.binary_location = "/usr/bin/google-chrome"
@@ -93,4 +96,5 @@ def runkptclautomation():
 
 if __name__ == "__main__":
     runkptclautomation()
+
 
