@@ -26,6 +26,10 @@ def runkptclautomation():
         print("Opening KPTCL SIS login page...")
         driver.get("https://sis.kptcl.net/SISpages/loginSelectionPage.sis")
 
+        print("Page Title:", driver.title)
+        print("Page Source First 500 chars:")
+        print(driver.page_source[:500])
+    
         # 1. Select zone
         wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Bagalakote Zone']"))).click()
 
@@ -89,3 +93,4 @@ def runkptclautomation():
 
 if __name__ == "__main__":
     runkptclautomation()
+
